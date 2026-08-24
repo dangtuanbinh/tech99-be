@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/appError.js';
 import { ApiResponse } from '../utils/response.js';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
 export const errorMiddleware = (
   err: any,
@@ -21,7 +21,7 @@ export const errorMiddleware = (
       message: val.message,
     }));
   } else if (err.code === 11000) {
-    statusCode = 400;
+    statusCode = 409;
     const key = Object.keys(err.keyValue)[0];
     message = `Duplicate field value entered: ${key}`;
   } else if (err.name === 'CastError') {
@@ -29,9 +29,15 @@ export const errorMiddleware = (
     message = `Invalid format for field ${err.path}: ${err.value}`;
   }
 
-  if (env.NODE_ENV === 'development' && statusCode === 500) {
-    console.error(err);
-    errors = err.stack;
+  const logMessage = `${req.method} ${req.originalUrl} - Status: ${statusCode} - Message: ${message}`;
+
+  if (statusCode >= 500) {
+    logger.error(`${logMessage} - Stack: ${err.stack}`);
+    if (env.NODE_ENV === 'development') {
+      errors = err.stack;
+    }
+  } else {
+    logger.warn(logMessage);
   }
 
   ApiResponse.error(res, message, statusCode, errors);

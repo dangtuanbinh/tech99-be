@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { AuthenticatedRequest, IUser } from '../types/index.js';
 import { ApiResponse } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 export const authMiddleware = (
   req: AuthenticatedRequest,
@@ -12,6 +13,7 @@ export const authMiddleware = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    logger.warn(`Auth failed: Authorization header missing or invalid format - ${req.method} ${req.originalUrl}`);
     ApiResponse.error(res, 'Authorization header missing or invalid format', 401);
     return;
   }
@@ -27,6 +29,7 @@ export const authMiddleware = (
     };
     next();
   } catch (error) {
+    logger.warn(`Auth failed: Unauthorized or token expired - ${req.method} ${req.originalUrl}`);
     ApiResponse.error(res, 'Unauthorized or token expired', 401);
   }
 };
