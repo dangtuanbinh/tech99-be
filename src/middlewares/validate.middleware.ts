@@ -9,7 +9,13 @@ export const validate = (
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const parsed = await schema.parseAsync(req[location]);
-      req[location] = parsed;
+      const target = req[location] as any;
+      if (target) {
+        for (const key of Object.keys(target)) {
+          delete target[key];
+        }
+        Object.assign(target, parsed);
+      }
       next();
     } catch (error) {
       if (error instanceof ZodError) {
