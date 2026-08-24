@@ -34,7 +34,7 @@ export class ProductService {
 
     if (data.name) {
       const existing = await this.productRepository.findByName(data.name);
-      if (existing && existing._id.toString() !== id) {
+      if (existing && (existing as any)._id.toString() !== id) {
         throw new AppError('Product name already exists', 400);
       }
     }

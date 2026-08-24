@@ -27,7 +27,7 @@ export const ProductQuerySchema = z.object({
   category: z.string().optional(),
   minPrice: z.coerce.number().min(0).optional(),
   maxPrice: z.coerce.number().min(0).optional(),
-  isActive: z.preprocess((val) => {
+  isActive: z.preprocess((val: any) => {
     if (val === 'true') return true;
     if (val === 'false') return false;
     return val;
